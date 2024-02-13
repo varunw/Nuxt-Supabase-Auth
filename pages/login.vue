@@ -26,12 +26,14 @@
 
       <button @click.prevent="signup" class="button">Sign up</button>
       <button @click.prevent="login" class="button">Login</button>
+      <button @click.prevent="logout" class="button">Log Out</button>
       <h1 v-if="login_bool">Success</h1>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import { createClient } from "@supabase/supabase-js";
+import axios from "axios";
 let signup_bool = ref(false);
 let login_bool = ref(false);
 const supabase = createClient(
@@ -78,8 +80,32 @@ const login = async () => {
     console.log(error);
     login_bool.value = false;
   } else {
-    console.log(data.session.access_token);
+    axios
+      .get("http://localhost:8080/", {
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+      })
+      .then(function (response) {
+        // handle success
+        console.log(response);
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+      .finally(function () {
+        // always executed
+      });
+    console.log("Access Token : ", data.session.access_token);
     login_bool.value = true;
+  }
+};
+
+const logout = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.log(error);
+  } else {
+    login_bool.value = false;
   }
 };
 
